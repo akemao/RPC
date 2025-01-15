@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/consumer-parent/consumer/consumer.iml" filepath="$PROJECT_DIR$/consumer-parent/consumer/consumer.iml" />
       <module fileurl="file://$PROJECT_DIR$/consumer-parent/consumer-parent.iml" filepath="$PROJECT_DIR$/consumer-parent/consumer-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/lth-rpc/lth-rpc.iml" filepath="$PROJECT_DIR$/lth-rpc/lth-rpc.iml" />
       <module fileurl="file://$PROJECT_DIR$/provider-parent/provider-api/provider-api.iml" filepath="$PROJECT_DIR$/provider-parent/provider-api/provider-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/provider-parent/provider-parent.iml" filepath="$PROJECT_DIR$/provider-parent/provider-parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/provider-parent/provider-service/provider-service.iml" filepath="$PROJECT_DIR$/provider-parent/provider-service/provider-service.iml" />

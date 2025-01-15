@@ -2,10 +2,12 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="lth-rpc" />
         <module name="provider-service-impl" />
         <module name="provider-service" />
         <module name="provider-api" />
@@ -13,13 +15,14 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="consumer" target="17" />
-      <module name="consumer-parent" target="17" />
-      <module name="provider-api" target="17" />
-      <module name="provider-parent" target="17" />
-      <module name="provider-service" target="17" />
-      <module name="provider-service-impl" target="17" />
-      <module name="rpc-parent" target="17" />
+      <module name="consumer" target="1.8" />
+      <module name="consumer-parent" target="1.8" />
+      <module name="lth-rpc" target="1.8" />
+      <module name="provider-api" target="1.8" />
+      <module name="provider-parent" target="1.8" />
+      <module name="provider-service" target="1.8" />
+      <module name="provider-service-impl" target="1.8" />
+      <module name="rpc-parent" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
