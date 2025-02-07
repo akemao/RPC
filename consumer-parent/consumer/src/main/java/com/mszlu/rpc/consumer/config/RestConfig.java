@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableHttpClient(basePackage = "com.mszlu.rpc.annontation")
+@EnableHttpClient(basePackage = "com.mszlu.rpc.consumer.rpc")
 public class RestConfig {
 
 	//定义restTemplate，spring提供

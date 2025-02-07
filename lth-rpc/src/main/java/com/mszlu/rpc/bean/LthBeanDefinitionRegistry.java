@@ -58,6 +58,7 @@ public class LthBeanDefinitionRegistry implements ImportBeanDefinitionRegistrar,
             AnnotationTypeFilter annotationTypeFilter = new AnnotationTypeFilter(MsHttpClient.class);
             scanner.addIncludeFilter(annotationTypeFilter);
             //上方定义了要找@MsHttpClient注解标识的类，这里进行对应包的扫描,扫描后就找到了所有被@MsHttpClient注解标识的类
+            //包路径 com.mszlu.rpc.consumer.rpc 路径下进行扫描
             Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(base);
             for (BeanDefinition candidateComponent : candidateComponents) {
                 if (candidateComponent instanceof AnnotatedBeanDefinition) {
@@ -93,6 +94,7 @@ public class LthBeanDefinitionRegistry implements ImportBeanDefinitionRegistrar,
         return null;
     }
 
+    //从feign组件中源码找的
     protected ClassPathScanningCandidateComponentProvider getScanner() {
         return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
             @Override
