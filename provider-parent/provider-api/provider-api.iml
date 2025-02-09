@@ -60,5 +60,6 @@
     <orderEntry type="module" module-name="provider-service-impl" />
     <orderEntry type="module" module-name="provider-service" />
     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.20" level="project" />
+    <orderEntry type="module" module-name="lth-rpc" />
   </component>
 </module>

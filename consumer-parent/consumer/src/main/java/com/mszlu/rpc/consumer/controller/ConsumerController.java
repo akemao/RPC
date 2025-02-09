@@ -1,6 +1,8 @@
 package com.mszlu.rpc.consumer.controller;
 
+import com.mszlu.rpc.annontation.LthReference;
 import com.mszlu.rpc.consumer.rpc.GoodsHttpRpc;
+import com.mszlu.rpc.provider.service.GoodsService;
 import com.mszlu.rpc.provider.service.modal.Goods;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,11 +15,8 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("consumer")
 public class ConsumerController {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private GoodsHttpRpc goodsHttpRpc;
+  /*  @Autowired
+    private RestTemplate restTemplate;*/
 
     /*@GetMapping("/find/{id}")
     public Goods find(@PathVariable Long id){
@@ -25,8 +24,23 @@ public class ConsumerController {
         return goods;
     }*/
 
-    @GetMapping("/find/{id}")
+
+
+     /*   @Autowired
+    private GoodsHttpRpc goodsHttpRpc;*/
+
+  /*  @GetMapping("/find/{id}")
     public Goods find(@PathVariable Long id){
         return goodsHttpRpc.findGoods(id);
+    }*/
+
+    @LthReference(uri = "http://localhost:7777/", resultType = Goods.class)
+    private GoodsService goodsService;
+
+    @GetMapping("/find/{id}")
+    public Goods find(@PathVariable Long id){
+        return goodsService.findGoods(id);
     }
+
+
 }
