@@ -2,7 +2,9 @@ package com.mszlu.rpc.spring;
 
 import com.mszlu.rpc.annontation.LthReference;
 import com.mszlu.rpc.annontation.LthService;
+import com.mszlu.rpc.factory.SingletonFactory;
 import com.mszlu.rpc.proxy.LthRpcClientProxy;
+import com.mszlu.rpc.server.LthServiceProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,13 @@ import java.lang.reflect.Field;
  */
 @Component
 public class LthRpcSpringBeanPostProcessor implements BeanPostProcessor {
+    private LthServiceProvider lthServiceProvider;
+
+    public LthRpcSpringBeanPostProcessor(){
+        lthServiceProvider = SingletonFactory.getInstance(LthServiceProvider.class);
+    }
+
+
     //bean初始化方法前被调用
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -26,7 +35,8 @@ public class LthRpcSpringBeanPostProcessor implements BeanPostProcessor {
         //判断bean上有没有加@LthService注解;如果有,则将其发布
         if(bean.getClass().isAnnotationPresent(LthService.class)){
             LthService lthService = bean.getClass().getAnnotation(LthService.class);
-
+            //加了LthService的bean就被找到了,就把其中的方法都发布为服务
+            lthServiceProvider.publishService(lthService,bean);
         }
 
         //判断bean里字段有没有加@Lthreference注解
