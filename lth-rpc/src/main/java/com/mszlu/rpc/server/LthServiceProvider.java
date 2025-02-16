@@ -1,6 +1,8 @@
 package com.mszlu.rpc.server;
 
 import com.mszlu.rpc.annontation.LthService;
+import com.mszlu.rpc.factory.SingletonFactory;
+import com.mszlu.rpc.netty.NettyServer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -19,7 +21,11 @@ public class LthServiceProvider {
     public void publishService(LthService lthService, Object service) {
         registerService(lthService,service);
         //检测到有服务发布的注解，启动NettyServer
-
+        NettyServer nettyServer = SingletonFactory.getInstance(NettyServer.class);
+        nettyServer.setLthServiceProvider(this);
+        if (!nettyServer.isRunning()){
+            nettyServer.run();
+        }
     }
 
     private void registerService(LthService lthService, Object service) {
