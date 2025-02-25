@@ -14,11 +14,12 @@ public class NettyServerInitiator extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel channel) throws Exception {
-       /* //解码器
-        channel.pipeline ().addLast ( "decoder",new MsRpcDecoder() );
+        //解码器
+       /* channel.pipeline ().addLast ( "decoder",new MsRpcDecoderx() );
         //编码器
         channel.pipeline ().addLast ( "encoder",new MsRpcEncoder());
         //消息处理器，线程池处理
         channel.pipeline ().addLast ( eventExecutors,"handler",new LthNettyServerHandler() );*/
     }
+
 }
