@@ -1,5 +1,7 @@
 package com.mszlu.rpc.netty.codec;
 
+import com.mszlu.rpc.constants.LthRpcConstants;
+import com.mszlu.rpc.exception.LthRpcException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -37,7 +39,62 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         //TODO 实现
-        return super.decode(ctx, in);
+        Object decode = super.decode(ctx, in);
+        if (decode instanceof ByteBuf){
+            ByteBuf frame = (ByteBuf) decode;
+            if (frame.readableBytes() < LthRpcConstants.TOTAL_LENGTH){
+                throw new LthRpcException("数据长度不符,格式有误");
+            }
+            return decodeFrame(frame);
+        }
+        return decode;
     }
+
+    private Object decodeFrame(ByteBuf in) {
+        //顺序读取
+        //1. 先读取魔法数，确定是我们自定义的协议
+        checkMagicNumber(in);
+        //2. 检查版本
+        checkVersion(in);
+        //3.数据长度
+        int fullLength = in.readInt();
+        //4.messageType 消息类型
+        byte messageType = in.readByte();
+        //5.序列化类型
+        byte codecType = in.readByte();
+        //6.压缩类型
+        byte compressType = in.readByte();
+        //7. 请求id
+        int requestId = in.readInt();
+        //8. 读取数据
+        int bodyLength = fullLength - LthRpcConstants.TOTAL_LENGTH;
+        if (bodyLength > 0){
+            //有数据,读取body的数据
+            byte[] bodyData = new byte[bodyLength];
+            in.readBytes(bodyData);
+            //解压缩 使用gzip
+            //String compressName = CompressTypeEnum.getName(compress);
+
+        }
+        return null;
+    }
+
+    private void checkVersion(ByteBuf in) {
+        byte b = in.readByte();
+        if (b != LthRpcConstants.VERSION){
+            throw new LthRpcException("未知的version");
+        }
+    }
+
+    private void checkMagicNumber(ByteBuf in) {
+        byte[] tmp = new byte[LthRpcConstants.MAGIC_NUMBER.length];
+        in.readBytes(tmp);
+        for (int i = 0;i< tmp.length;i++) {
+            if (tmp[i] != LthRpcConstants.MAGIC_NUMBER[i]){
+                throw new LthRpcException("未知的magic number");
+            }
+        }
+    }
+
 }
 
