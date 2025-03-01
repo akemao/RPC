@@ -1,6 +1,7 @@
 package com.mszlu.rpc.handler;
 
 import com.mszlu.rpc.netty.codec.LthRpcDecoder;
+import com.mszlu.rpc.netty.codec.LthRpcEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.util.concurrent.EventExecutorGroup;
@@ -18,7 +19,7 @@ public class NettyServerInitiator extends ChannelInitializer<SocketChannel> {
         //解码器
         channel.pipeline ().addLast ( "decoder",new LthRpcDecoder() );
         //编码器
-        //channel.pipeline ().addLast ( "encoder",new MsRpcEncoder());
+        channel.pipeline ().addLast ( "encoder",new LthRpcEncoder());
         //消息处理器，线程池处理
         //channel.pipeline ().addLast ( eventExecutors,"handler",new LthNettyServerHandler() );
     }

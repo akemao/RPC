@@ -1,5 +1,6 @@
 package com.mszlu.rpc.netty.codec;
 
+import com.mszlu.rpc.constants.CompressTypeEnum;
 import com.mszlu.rpc.constants.LthRpcConstants;
 import com.mszlu.rpc.exception.LthRpcException;
 import io.netty.buffer.ByteBuf;
@@ -38,7 +39,7 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-        //TODO 实现
+        //数据发送过来后，先进入这里，进行解码
         Object decode = super.decode(ctx, in);
         if (decode instanceof ByteBuf){
             ByteBuf frame = (ByteBuf) decode;
@@ -73,7 +74,7 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
             byte[] bodyData = new byte[bodyLength];
             in.readBytes(bodyData);
             //解压缩 使用gzip
-            //String compressName = CompressTypeEnum.getName(compress);
+            String compressName = CompressTypeEnum.getName(compressType);
 
         }
         return null;
