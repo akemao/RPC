@@ -1,11 +1,14 @@
 package com.mszlu.rpc.netty.codec;
 
+import com.mszlu.rpc.compress.Compress;
 import com.mszlu.rpc.constants.CompressTypeEnum;
 import com.mszlu.rpc.constants.LthRpcConstants;
 import com.mszlu.rpc.exception.LthRpcException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+
+import java.util.ServiceLoader;
 
 /**
  *   0     1     2     3     4        5     6     7     8         9          10      11     12  13  14   15 16
@@ -74,10 +77,20 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
             byte[] bodyData = new byte[bodyLength];
             in.readBytes(bodyData);
             //解压缩 使用gzip
-            String compressName = CompressTypeEnum.getName(compressType);
-
+            Compress compress = loadCompress(compressType);
         }
         return null;
+    }
+
+    private Compress loadCompress(byte compressType) {
+        String compressName = CompressTypeEnum.getName(compressType);
+        ServiceLoader<Compress> load = ServiceLoader.load(Compress.class);
+        for (Compress compress : load) {
+            if (compress.name().equals(compressName)){
+                return compress;
+            }
+        }
+        throw new LthRpcException("无对应的压缩类型");
     }
 
     private void checkVersion(ByteBuf in) {
