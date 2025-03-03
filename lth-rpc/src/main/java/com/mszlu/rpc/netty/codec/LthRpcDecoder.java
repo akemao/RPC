@@ -3,7 +3,13 @@ package com.mszlu.rpc.netty.codec;
 import com.mszlu.rpc.compress.Compress;
 import com.mszlu.rpc.constants.CompressTypeEnum;
 import com.mszlu.rpc.constants.LthRpcConstants;
+import com.mszlu.rpc.constants.MessageTypeEnum;
+import com.mszlu.rpc.constants.SerializationTypeEnum;
 import com.mszlu.rpc.exception.LthRpcException;
+import com.mszlu.rpc.message.LthMessage;
+import com.mszlu.rpc.message.LthRequest;
+import com.mszlu.rpc.message.LthResponse;
+import com.mszlu.rpc.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -11,29 +17,29 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import java.util.ServiceLoader;
 
 /**
- *   0     1     2     3     4        5     6     7     8         9          10      11     12  13  14   15 16
- *   +-----+-----+-----+-----+--------+----+----+----+------+-----------+-------+----- --+-----+-----+-------+
- *   |   magic   code        |version | full length         | messageType| codec|compress|    RequestId       |
- *   +-----------------------+--------+---------------------+-----------+-----------+-----------+------------+
- *   |                                                                                                       |
- *   |                                         body                                                          |
- *   |                                                                                                       |
- *   |                                        ... ...                                                        |
- *   +-------------------------------------------------------------------------------------------------------+
+ * 0     1     2     3     4        5     6     7     8         9          10      11     12  13  14   15 16
+ * +-----+-----+-----+-----+--------+----+----+----+------+-----------+-------+----- --+-----+-----+-------+
+ * |   magic   code        |version | full length         | messageType| codec|compress|    RequestId       |
+ * +-----------------------+--------+---------------------+-----------+-----------+-----------+------------+
+ * |                                                                                                       |
+ * |                                         body                                                          |
+ * |                                                                                                       |
+ * |                                        ... ...                                                        |
+ * +-------------------------------------------------------------------------------------------------------+
  * 4B  magic code（魔法数）   1B version（版本）   4B full length（消息长度）    1B messageType（消息类型）
  * 1B compress（压缩类型） 1B codec（序列化类型）    4B  requestId（请求的Id）
  * body（object类型数据）
  */
 public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
-    public LthRpcDecoder(){
-        this(8 * 1024 * 1024,5,4,-9,0);
+    public LthRpcDecoder() {
+        this(8 * 1024 * 1024, 5, 4, -9, 0);
     }
+
     /**
-     *
-     * @param maxFrameLength 最大帧长度。它决定可以接收的数据的最大长度。如果超过，数据将被丢弃,根据实际环境定义
-     * @param lengthFieldOffset 数据长度字段开始的偏移量, magic code+version=长度为5
-     * @param lengthFieldLength 消息长度的大小  full length（消息长度） 长度为4
-     * @param lengthAdjustment 补偿值 lengthAdjustment+数据长度取值=长度字段之后剩下包的字节数(x + 16=7 so x = -9)
+     * @param maxFrameLength      最大帧长度。它决定可以接收的数据的最大长度。如果超过，数据将被丢弃,根据实际环境定义
+     * @param lengthFieldOffset   数据长度字段开始的偏移量, magic code+version=长度为5
+     * @param lengthFieldLength   消息长度的大小  full length（消息长度） 长度为4
+     * @param lengthAdjustment    补偿值 lengthAdjustment+数据长度取值=长度字段之后剩下包的字节数(x + 16=7 so x = -9)
      * @param initialBytesToStrip 忽略的字节长度，如果要接收所有的header+body 则为0，如果只接收body 则为header的长度 ,我们这为0
      */
     public LthRpcDecoder(int maxFrameLength, int lengthFieldOffset, int lengthFieldLength, int lengthAdjustment, int initialBytesToStrip) {
@@ -44,9 +50,9 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         //数据发送过来后，先进入这里，进行解码
         Object decode = super.decode(ctx, in);
-        if (decode instanceof ByteBuf){
+        if (decode instanceof ByteBuf) {
             ByteBuf frame = (ByteBuf) decode;
-            if (frame.readableBytes() < LthRpcConstants.TOTAL_LENGTH){
+            if (frame.readableBytes() < LthRpcConstants.TOTAL_LENGTH) {
                 throw new LthRpcException("数据长度不符,格式有误");
             }
             return decodeFrame(frame);
@@ -70,23 +76,53 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
         byte compressType = in.readByte();
         //7. 请求id
         int requestId = in.readInt();
-        //8. 读取数据
+        //8. 读取数据长度
         int bodyLength = fullLength - LthRpcConstants.TOTAL_LENGTH;
-        if (bodyLength > 0){
+        LthMessage message = LthMessage.builder()
+                .codec(codecType)
+                .compress(compressType)
+                .messageType(messageType)
+                .requestId(requestId)
+                .build();
+        if (bodyLength > 0) {
             //有数据,读取body的数据
             byte[] bodyData = new byte[bodyLength];
             in.readBytes(bodyData);
             //解压缩 使用gzip
             Compress compress = loadCompress(compressType);
+            bodyData = compress.decompress(bodyData);
+            //反序列化
+            Serializer serializer = loadSerializer(codecType);
+            //根据不同的业务反序列化
+            //客户端发请求 服务端相应数据
+            if (MessageTypeEnum.REQUEST.getCode() == messageType){
+                LthRequest request = (LthRequest) serializer.deserialize(bodyData, LthRequest.class);
+                message.setData(request);
+            }
+            if (MessageTypeEnum.RESPONSE.getCode() == messageType){
+                LthResponse response = (LthResponse) serializer.deserialize(bodyData, LthResponse.class);
+                message.setData(response);
+            }
         }
-        return null;
+        return message;
+    }
+
+    private Serializer loadSerializer(byte codecType) {
+        String serializeName = SerializationTypeEnum.getName(codecType);
+        ServiceLoader<Serializer> load = ServiceLoader.load(Serializer.class);
+        for (Serializer serializer : load) {
+            if (serializer.name().equals(serializeName)) {
+                return serializer;
+            }
+        }
+        throw new LthRpcException("无对应的序列化类型");
     }
 
     private Compress loadCompress(byte compressType) {
         String compressName = CompressTypeEnum.getName(compressType);
         ServiceLoader<Compress> load = ServiceLoader.load(Compress.class);
         for (Compress compress : load) {
-            if (compress.name().equals(compressName)){
+            if (compress.name().equals(compressName)) {
                 return compress;
             }
         }
@@ -95,7 +131,7 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
 
     private void checkVersion(ByteBuf in) {
         byte b = in.readByte();
-        if (b != LthRpcConstants.VERSION){
+        if (b != LthRpcConstants.VERSION) {
             throw new LthRpcException("未知的version");
         }
     }
@@ -103,8 +139,8 @@ public class LthRpcDecoder extends LengthFieldBasedFrameDecoder {
     private void checkMagicNumber(ByteBuf in) {
         byte[] tmp = new byte[LthRpcConstants.MAGIC_NUMBER.length];
         in.readBytes(tmp);
-        for (int i = 0;i< tmp.length;i++) {
-            if (tmp[i] != LthRpcConstants.MAGIC_NUMBER[i]){
+        for (int i = 0; i < tmp.length; i++) {
+            if (tmp[i] != LthRpcConstants.MAGIC_NUMBER[i]) {
                 throw new LthRpcException("未知的magic number");
             }
         }

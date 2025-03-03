@@ -1,7 +1,7 @@
 package com.mszlu.rpc.netty;
 
 import com.mszlu.rpc.factory.LthRpcThreadFactory;
-import com.mszlu.rpc.handler.NettyServerInitiator;
+import com.mszlu.rpc.netty.handler.NettyServerInitiator;
 import com.mszlu.rpc.server.LthServiceProvider;
 import com.mszlu.rpc.utils.RuntimeUtil;
 import io.netty.bootstrap.ServerBootstrap;

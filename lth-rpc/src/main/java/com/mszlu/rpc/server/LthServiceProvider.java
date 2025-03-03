@@ -31,9 +31,10 @@ public class LthServiceProvider {
     private void registerService(LthService lthService, Object service) {
         //service要进行注册, 先创建一个map进行存储
         //getInterfaces()[0] 获取实现类第一个实现的接口
-        String serviceName = service.getClass().getInterfaces()[0].getCanonicalName()+lthService.version();
-        serviceMap.put(serviceName,service);
-        log.info("发现服务{}并注册",serviceName);
+        String version =  lthService.version();
+        String interfaceName = service.getClass().getInterfaces()[0].getCanonicalName()+lthService.version();
+        serviceMap.put(interfaceName + version,service);
+        log.info("发现服务{}并注册",interfaceName);
     }
 
     public Object getService(String serviceName) {
