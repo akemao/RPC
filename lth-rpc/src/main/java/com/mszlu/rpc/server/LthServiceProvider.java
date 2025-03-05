@@ -16,6 +16,7 @@ public class LthServiceProvider {
     public LthServiceProvider(){
         //发布的服务 都在这里
         serviceMap = new ConcurrentHashMap<>();
+        log.info("LthServiceProvider 实例创建, HashCode: {}", this.hashCode());
     }
 
     public void publishService(LthService lthService, Object service) {
@@ -31,10 +32,11 @@ public class LthServiceProvider {
     private void registerService(LthService lthService, Object service) {
         //service要进行注册, 先创建一个map进行存储
         //getInterfaces()[0] 获取实现类第一个实现的接口
+        String interfaceName = service.getClass().getInterfaces()[0].getCanonicalName();
         String version =  lthService.version();
-        String interfaceName = service.getClass().getInterfaces()[0].getCanonicalName()+lthService.version();
-        serviceMap.put(interfaceName + version,service);
-        log.info("发现服务{}并注册",interfaceName);
+        String key = interfaceName + version;
+        serviceMap.put(key,service);
+        log.info("发现服务并注册key:{},value:{}",key,service);
     }
 
     public Object getService(String serviceName) {

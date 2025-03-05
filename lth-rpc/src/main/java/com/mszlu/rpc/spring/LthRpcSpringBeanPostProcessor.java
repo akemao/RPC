@@ -3,6 +3,7 @@ package com.mszlu.rpc.spring;
 import com.mszlu.rpc.annontation.LthReference;
 import com.mszlu.rpc.annontation.LthService;
 import com.mszlu.rpc.factory.SingletonFactory;
+import com.mszlu.rpc.netty.client.NettyClient;
 import com.mszlu.rpc.proxy.LthRpcClientProxy;
 import com.mszlu.rpc.server.LthServiceProvider;
 import org.springframework.beans.BeansException;
@@ -17,9 +18,12 @@ import java.lang.reflect.Field;
 @Component
 public class LthRpcSpringBeanPostProcessor implements BeanPostProcessor {
     private LthServiceProvider lthServiceProvider;
+    private NettyClient nettyClient;
 
     public LthRpcSpringBeanPostProcessor(){
         lthServiceProvider = SingletonFactory.getInstance(LthServiceProvider.class);
+        //创建netty客户端
+        nettyClient = SingletonFactory.getInstance(NettyClient.class);
     }
 
 
@@ -46,7 +50,7 @@ public class LthRpcSpringBeanPostProcessor implements BeanPostProcessor {
         for (Field declaredField : declaredFields) {
             LthReference annotation = declaredField.getAnnotation(LthReference.class);
             if(annotation != null){
-                LthRpcClientProxy lthRpcClientProxy = new LthRpcClientProxy(annotation);
+                LthRpcClientProxy lthRpcClientProxy = new LthRpcClientProxy(annotation,nettyClient);
                 Object proxy = lthRpcClientProxy.getProxy(declaredField.getType());
                 //当isAccessible()的结果是false时不允许通过反射访问该字段
                 declaredField.setAccessible(true);

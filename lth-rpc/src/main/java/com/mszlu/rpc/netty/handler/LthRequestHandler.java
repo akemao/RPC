@@ -21,7 +21,9 @@ public class LthRequestHandler {
     public Object handler(LthRequest lthRequest) {
         String interfaceName = lthRequest.getInterfaceName();
         String version = lthRequest.getVersion();
-        Object service = lthServiceProvider.getService(interfaceName + version);
+        String key = interfaceName + version;
+        Object service = lthServiceProvider.getService(key);
+        log.info("service===========>{}",key);
         if (service == null){
             throw new LthRpcException("没有找到可用的服务提供方");
         }

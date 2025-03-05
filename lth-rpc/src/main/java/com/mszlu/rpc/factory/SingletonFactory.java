@@ -17,7 +17,7 @@ public class SingletonFactory {
     private SingletonFactory() {
     }
 
-    public static <T> T getInstance(Class<T> c) {
+   /* public static <T> T getInstance(Class<T> c) {
         if (c == null) {
             throw new IllegalArgumentException();
         }
@@ -34,6 +34,18 @@ public class SingletonFactory {
                 }
             }));
         }
+    }*/
+
+    public static <T> T getInstance(Class<T> c) {
+        if (c == null) throw new IllegalArgumentException();
+        String key = c.getName(); // 关键改动：使用类全限定名作为键
+        return c.cast(OBJECT_MAP.computeIfAbsent(key, k -> {
+            try {
+                return c.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("创建单例失败", e);
+            }
+        }));
     }
 
     public static void main(String[] args) {
@@ -41,7 +53,7 @@ public class SingletonFactory {
         ExecutorService executorService = Executors.newFixedThreadPool(100);
 
         for (int i = 0 ; i< 1000; i++) {
-            executorService.execute(new Runnable() {
+            executorService.execute(new Runnable() {//1868987089  147089688
                 @Override
                 public void run() {
                     LthServiceProvider instance = SingletonFactory.getInstance(LthServiceProvider.class);

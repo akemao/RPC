@@ -34,11 +34,11 @@ public class ConsumerController {
         return goodsHttpRpc.findGoods(id);
     }*/
 
-    @LthReference(uri = "http://localhost:7777/", resultType = Goods.class)
+    @LthReference(host = "localhost", port = 13567)
     private GoodsService goodsService;
 
     @GetMapping("/find/{id}")
-    public Goods find(@PathVariable Long id){
+    public Goods findGoods(@PathVariable Long id){
         return goodsService.findGoods(id);
     }
 
