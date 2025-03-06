@@ -37,7 +37,6 @@ public class LthRpcClientProxy implements InvocationHandler {
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        log.info("rpc的代理实现类 调用了...");
         //1. 构建请求数据MsRequest
         String requestId = UUID.randomUUID().toString();
         LthRequest request = LthRequest.builder()

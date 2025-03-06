@@ -17,7 +17,7 @@ public class SingletonFactory {
     private SingletonFactory() {
     }
 
-   /* public static <T> T getInstance(Class<T> c) {
+    public static <T> T getInstance(Class<T> c) {
         if (c == null) {
             throw new IllegalArgumentException();
         }
@@ -34,8 +34,9 @@ public class SingletonFactory {
                 }
             }));
         }
-    }*/
+    }
 
+/*
     public static <T> T getInstance(Class<T> c) {
         if (c == null) throw new IllegalArgumentException();
         String key = c.getName(); // 关键改动：使用类全限定名作为键
@@ -47,6 +48,7 @@ public class SingletonFactory {
             }
         }));
     }
+*/
 
     public static void main(String[] args) {
         //测试并发下 生成的单例是否唯一
