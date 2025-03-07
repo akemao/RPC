@@ -1,6 +1,7 @@
 package com.mszlu.rpc.consumer.controller;
 
 import com.mszlu.rpc.annontation.LthReference;
+import com.mszlu.rpc.annontation.LthService;
 import com.mszlu.rpc.consumer.rpc.GoodsHttpRpc;
 import com.mszlu.rpc.provider.service.GoodsService;
 import com.mszlu.rpc.provider.service.modal.Goods;
@@ -34,11 +35,12 @@ public class ConsumerController {
         return goodsHttpRpc.findGoods(id);
     }*/
 
-    @LthReference(host = "localhost", port = 13567)
+    //@LthReference(host = "localhost", port = 13567)
+    @LthReference(version = "1.0")
     private GoodsService goodsService;
 
     @GetMapping("/find/{id}")
-    public Goods findGoods(@PathVariable Long id){
+    public Goods find(@PathVariable Long id){
         return goodsService.findGoods(id);
     }
 

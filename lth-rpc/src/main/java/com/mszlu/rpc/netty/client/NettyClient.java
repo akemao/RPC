@@ -1,5 +1,7 @@
 package com.mszlu.rpc.netty.client;
 
+import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.mszlu.rpc.config.LthRpcConfig;
 import com.mszlu.rpc.constants.CompressTypeEnum;
 import com.mszlu.rpc.constants.MessageTypeEnum;
 import com.mszlu.rpc.constants.SerializationTypeEnum;
@@ -12,6 +14,7 @@ import com.mszlu.rpc.netty.client.handler.LthNettyClientHandler;
 import com.mszlu.rpc.netty.client.handler.UnprocessedRequests;
 import com.mszlu.rpc.netty.codec.LthRpcDecoder;
 import com.mszlu.rpc.netty.codec.LthRpcEncoder;
+import com.mszlu.rpc.register.nacos.NacosTemplate;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -30,9 +33,18 @@ public class NettyClient implements LthClient{
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
     private final UnprocessedRequests unprocessedRequests;
+    private final NacosTemplate nacosTemplate;
+
+    private LthRpcConfig lthRpcConfig;
+    public void setLthRpcConfig(LthRpcConfig lthRpcConfig) {
+        this.lthRpcConfig = lthRpcConfig;
+    }
+
+
 
     public NettyClient(){
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
+        this.nacosTemplate = SingletonFactory.getInstance(NacosTemplate.class);
         eventLoopGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)
@@ -51,10 +63,28 @@ public class NettyClient implements LthClient{
                 });
     }
 
+
+    //public Object sendRequest(LthRequest lthRequest, String host, int port) {
     @Override
-    public Object sendRequest(LthRequest lthRequest, String host, int port) {
+    public Object sendRequest(LthRequest lthRequest) {
+        if (lthRpcConfig == null){
+            throw new LthRpcException("必须开启EnableRPC");
+        }
+        //结果获取的任务
+        CompletableFuture<LthResponse<Object>> resultFuture = new CompletableFuture<>();
+
+        //需要从nacos中获取服务提供方的ip和端口
+        Instance oneHealthyInstance = null;
+        try {
+            oneHealthyInstance = nacosTemplate.getOneHealthyInstance(lthRequest.getInterfaceName() + lthRequest.getVersion(), lthRpcConfig.getNacosGroup());
+        } catch (Exception e) {
+            log.error("获取nacos实例出错:",e);
+            resultFuture.completeExceptionally(e);
+            return resultFuture;
+        }
+
         //1.先连接netty服务 拿到channel
-        InetSocketAddress inetSocketAddress = new InetSocketAddress(host,port);
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(oneHealthyInstance.getIp(),oneHealthyInstance.getPort());
         //连接
         CompletableFuture<Channel> channelCompletableFuture = new CompletableFuture<>();
         bootstrap.connect(inetSocketAddress).addListener(new ChannelFutureListener() {
@@ -68,8 +98,7 @@ public class NettyClient implements LthClient{
                 }
             }
         });
-        //结果获取的任务
-        CompletableFuture<LthResponse<Object>> resultFuture = new CompletableFuture<>();
+
         try {
             Channel channel = channelCompletableFuture.get();
 

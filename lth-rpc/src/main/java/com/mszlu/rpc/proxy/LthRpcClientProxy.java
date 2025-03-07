@@ -50,9 +50,9 @@ public class LthRpcClientProxy implements InvocationHandler {
                 .build();
 
         //2. 通过客户端向服务端发送请求
-        String host = lthReference.host();
-        int port = lthReference.port();
-        CompletableFuture<LthResponse<Object>> future = (CompletableFuture<LthResponse<Object>>) nettyClient.sendRequest(request,host,port);
+      /*  String host = lthReference.host();
+        int port = lthReference.port();*/
+        CompletableFuture<LthResponse<Object>> future = (CompletableFuture<LthResponse<Object>>) nettyClient.sendRequest(request);
         //4. 接收数据
         LthResponse<Object> lthResponse = future.get();
         if (lthResponse == null){

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NettyServer implements LthServer{
+    public static final int PORT = 13567;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -44,7 +45,7 @@ public class NettyServer implements LthServer{
                     .handler(new LoggingHandler(LogLevel.INFO))
                     // 当客户端第一次进行请求的时候才会进行初始化
                     .childHandler(new NettyServerInitiator(eventExecutors));
-            bootstrap.bind(13567).sync().channel();
+            bootstrap.bind(lthServiceProvider.getLthRpcConfig().getProviderPort()).sync().channel();
             isRunning = true;
             Runtime.getRuntime().addShutdownHook(new Thread(){
                 @Override
