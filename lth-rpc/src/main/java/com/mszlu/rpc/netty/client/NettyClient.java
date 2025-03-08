@@ -15,6 +15,7 @@ import com.mszlu.rpc.netty.client.handler.UnprocessedRequests;
 import com.mszlu.rpc.netty.codec.LthRpcDecoder;
 import com.mszlu.rpc.netty.codec.LthRpcEncoder;
 import com.mszlu.rpc.netty.handler.idle.ConnectionWatchdog;
+import com.mszlu.rpc.netty.timer.UpdateNacosServiceTask;
 import com.mszlu.rpc.register.nacos.NacosTemplate;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -31,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -45,6 +45,7 @@ public class NettyClient implements LthClient{
     private final UnprocessedRequests unprocessedRequests;
     private final NacosTemplate nacosTemplate;
     private LthRpcConfig lthRpcConfig;
+    protected HashedWheelTimer serviceTimer;
 
     protected final HashedWheelTimer timer = new HashedWheelTimer();
 
@@ -117,6 +118,11 @@ public class NettyClient implements LthClient{
             //更新缓存
             if (oneHealthyInstance != null){
                 SERVICE_PROVIDERS.computeIfAbsent(serviceName, k -> new CopyOnWriteArrayList<>()).add(oneHealthyInstance);
+                //触发定时任务，保证新开启的服务能进入缓存
+                if (serviceTimer == null){
+                    serviceTimer = new HashedWheelTimer();
+                    serviceTimer.newTimeout(new UpdateNacosServiceTask(serviceName,lthRpcConfig,SERVICE_PROVIDERS),10,TimeUnit.SECONDS);
+                }
             }
             inetSocketAddress = new InetSocketAddress(oneHealthyInstance.getIp(), oneHealthyInstance.getPort());
         }
@@ -171,7 +177,9 @@ public class NettyClient implements LthClient{
                 if (future.isSuccess()){
                     channelCompletableFuture.complete(future.channel());
                 }else {
+                    //连接失败，删除缓存
                     log.info("连接netty服务失败");
+                    channelCompletableFuture.completeExceptionally(future.cause());
                 }
             }
         });
