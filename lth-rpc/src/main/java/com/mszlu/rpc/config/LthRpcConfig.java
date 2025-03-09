@@ -14,4 +14,6 @@ public class LthRpcConfig {
      * 同一个组内 互通，并组成集群
      */
     private String nacosGroup = "lth-rpc-group";
+
+    private String loadbalance = "random";
 }

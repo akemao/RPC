@@ -53,6 +53,7 @@ public class LthRpcSpringBeanPostProcessor implements BeanPostProcessor, BeanFac
                 lthRpcConfig.setNacosHost(enableRpc.nacosHost());
                 lthRpcConfig.setNacosPort(enableRpc.nacosPort());
                 lthRpcConfig.setProviderPort(enableRpc.serverPort());
+                lthRpcConfig.setLoadbalance(enableRpc.loadBalance());
                 lthServiceProvider.setLthRpcConfig(lthRpcConfig);
                 //nacos 根据配置进行初始化
                 nacosTemplate.init(lthRpcConfig.getNacosHost(),lthRpcConfig.getNacosPort());

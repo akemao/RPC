@@ -73,7 +73,7 @@ public abstract class ConnectionWatchdog extends ChannelInboundHandlerAdapter im
             }
             //重连的间隔时间会越来越长
             int timeout = 2 << attempts;
-            timer.newTimeout(this, timeout, TimeUnit.MILLISECONDS);
+            timer.newTimeout(this, timeout, TimeUnit.SECONDS);
         }
         ctx.fireChannelInactive();
     }

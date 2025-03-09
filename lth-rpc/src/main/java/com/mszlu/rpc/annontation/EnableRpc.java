@@ -24,4 +24,6 @@ public @interface EnableRpc {
 
     //server服务端口
     int serverPort() default 13567;
+
+    String loadBalance() default "random";
 }

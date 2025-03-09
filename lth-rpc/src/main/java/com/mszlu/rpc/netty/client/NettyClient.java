@@ -1,6 +1,7 @@
 package com.mszlu.rpc.netty.client;
 
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.mszlu.rpc.balance.LoadBalance;
 import com.mszlu.rpc.config.LthRpcConfig;
 import com.mszlu.rpc.constants.CompressTypeEnum;
 import com.mszlu.rpc.constants.MessageTypeEnum;
@@ -17,6 +18,7 @@ import com.mszlu.rpc.netty.codec.LthRpcEncoder;
 import com.mszlu.rpc.netty.handler.idle.ConnectionWatchdog;
 import com.mszlu.rpc.netty.timer.UpdateNacosServiceTask;
 import com.mszlu.rpc.register.nacos.NacosTemplate;
+import com.mszlu.rpc.utils.SPIUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -93,15 +95,9 @@ public class NettyClient implements LthClient{
 
         // 从缓存中获取服务提供者地址
         if (SERVICE_PROVIDERS.containsKey(serviceName)) {
-            List<Instance> instances = SERVICE_PROVIDERS.get(serviceName);
-            if (!instances.isEmpty()) {
-                // 随机选择一个实例
-                Random random = new Random();
-                int index = random.nextInt(instances.size());
-                Instance instance = instances.get(index);
-                inetSocketAddress = new InetSocketAddress(instance.getIp(), instance.getPort());
-                log.info("走了缓存的服务提供者地址，省去了连接 Nacos 的过程...");
-            }
+            LoadBalance loadBalance = SPIUtils.loadBalance(lthRpcConfig.getLoadbalance());
+            inetSocketAddress = loadBalance.loadBalance(SERVICE_PROVIDERS, serviceName);
+            log.info("走了缓存的服务提供者地址，省去了连接 Nacos 的过程...");
         }
 
         // 如果缓存中没有地址，从 Nacos 获取
